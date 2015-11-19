@@ -1,6 +1,7 @@
 # Trie work
 # Graeme Cliffe
 
+import cPickle as pickle
 
 class Node:
     # Node - element in the trie
@@ -39,7 +40,7 @@ class Trie:
         curr_node = self.start_node
         return self.get_children_strings(curr_node)
 
-    def get_children(self, stub):
+    def get_children_of_stub(self, stub):
         # Return a list containing all the words in the trie branching from the stub
         curr_node = self.start_node
         for char in stub:
@@ -126,34 +127,49 @@ class Trie:
             return False
         return self.remove_word_recursive(word, self.start_node, 0)
 
-    def remove_word_recursive(self, word, parent_node, depth):
+    def remove_word_recursive(self, word, curr_node, depth):
         # If we hit the bottom letter delete the bottom node and return up
         if len(word) == depth:
             # No matter what, remove the word as a leaf
-            parent_node.leaf = False
+            curr_node.leaf = False
             # If there are no children for our node, then delete it
-            if not parent_node.get_child(word[depth-1]):
-                del parent_node
+            if not curr_node.get_child(word[depth-1]):
+                del curr_node
             return True
         # If we are at a non bottom node, keep going
-        self.remove_word_recursive(word, parent_node.get_child(word[depth]), depth + 1)
-        # Then delete the child node if it has only one child and is not a leaf
-        if len(parent_node.children) == 0 and not parent_node.leaf:
-            del parent_node
+        self.remove_word_recursive(word, curr_node.get_child(word[depth]), depth + 1)
+        # Then delete the child node if it has no children and is not a leaf
+        if len(curr_node.children) == 0 and not curr_node.leaf:
+            del curr_node
         return True
 
 
 def build_trie_from_enable():
-    f = open("../enable1.txt", "r")
+    f = open("./enable1.txt", "r")
     words = []
     for line in f.readlines():
         words.append(line.strip("\n"))
     return Trie(words)
 
 
+def write_trie_to_file(file_name, trie):
+    # Write your trie to a file
+    f = open(file_name, "wb")
+    pickle.dump(trie, f, pickle.HIGHEST_PROTOCOL)
+
+
+def get_trie_from_file(file_name):
+    # Read your trie from a file
+    f = open(file_name, "rb")
+    return pickle.load(f)
+
+
 def main():
     tr = build_trie_from_enable()
-    print tr.remove_word("zygote")
+    result = tr.get_trie()
+    for i in result:
+        if i[0] == "y":
+            tr.remove_word(i)
     result = tr.get_trie()
     for i in result:
         print i
